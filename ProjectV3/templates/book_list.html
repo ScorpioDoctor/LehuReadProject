@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load book_templ_tags %}
+
+{% block title %}
+    图书列表页
+{% endblock %}
+
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <a href="?lang=&epch={{ epch }}&ctg={{ ctg }}"
+                   class="btn {% ifequal lang '' %}btn-danger{% else %}btn-default{% endifequal %}">所有语种：</a>
+                {% get_languages as languages %}
+                {% for lg in languages %}
+                    <a href="?lang={{ lg.pk }}&epch={{ epch }}&ctg={{ ctg }}"><span
+                            class="btn {% ifequal lang lg.pk|stringformat:'s' %}btn-danger{% else %}btn-default{% endifequal %}">
+                        {{ lg.langname }}</span></a>
+                {% endfor %}
+            </div>
+            <div class="col-12">
+                <a href="?epch=&lang={{ lang }}&ctg={{ ctg }}"
+                   class="btn {% ifequal epch '' %}btn-primary{% else %}btn-default{% endifequal %}">所有年代：</a>
+                {% get_epochs as epoches %}
+                {% for epoch in epoches %}
+                    <a href="?epch={{ epoch.pk }}&lang={{ lang }}&ctg={{ ctg }}"><span
+                            class="btn {% ifequal epch epoch.pk|stringformat:'s' %}btn-primary{% else %}btn-default{% endifequal %}">
+                        {{ epoch.epochname }}</span></a>
+                {% endfor %}
+            </div>
+            <div class="col-12">
+                <a href="?ctg=&epch={{ epch }}&lang={{ lang }}" class="btn
+                    {% ifequal ctg '' %}btn-warning{% else %}btn-default{% endifequal %}">所有分类：</a>
+                {% get_categories as book_categories %}
+                {% for bctg in book_categories %}
+                    <a href="?ctg={{ bctg.pk }}&epch={{ epch }}&lang={{ lang }}"><span
+                            class="btn {% ifequal ctg bctg.pk|stringformat:'s' %}btn-warning{% else %}btn-default{% endifequal %}">{{ bctg.catname }}</span></a>
+                {% endfor %}
+            </div>
+        </div>
+        <hr/>
+        <div class="row">
+            <div class="col-md-10">
+                <div class="row">
+                    {% for book in book_list.object_list %}
+                        <div class="col-md-3">
+                            <div class="card" style="width: 90%;margin-bottom: 2rem">
+                                <a href="{% url 'books:book-detail' book.pk %}">
+                                    <img class="card-img-top" src="{{ MEDIA_URL }}{{ book.cover }}"
+                                         alt="{{ book.cover }}"/>
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">《{{ book.title }}》</h5>
+                                    <p class="card-text">作者:{{ book.author.name }}</p>
+                                    <p class="card-text">
+                                        难度:{{ book.get_degree_display }}
+                                        <a class="btn btn-success" href="{% url 'books:book-detail' book.pk %}">详情</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <hr/>
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if not book_list.has_previous %}disabled{% endif %}">
+                            <a class="page-link" href="?{{ book_list.previous_page_number.querystring }}"
+                               tabindex="-1">前一页</a>
+                        </li>
+                        {% for page in book_list.pages %}
+                            {% if page %}
+                                {% ifequal page book_list.number %}
+                                    <li class="page-item"><a class="page-link">{{ page }}</a></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ page.querystring }}">
+                                            {{ page }}</a>
+                                    </li>
+                                {% endifequal %}
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not book_list.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="?{{ book_list.next_page_number.querystring }}">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>标签云</strong>
+                    </div>
+                    <div class="card-body">
+                        {% get_tags as  book_tags %}
+                        {% for btag in book_tags %}
+                            <a href="?tag={{ btag.pk }}" class="badge badge-{{ forloop.counter|get_styles }}">
+                                {{ btag.tagname }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <br/>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>热门图书排名</strong>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% get_hotest_books as hotest_books %}
+                            {% for hbook in hotest_books %}
+                                <a class="list-group-item" href="{% url 'books:book-detail' hbook.pk %}">
+                                    {{ hbook.title }}
+                                </a>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+
+{% endblock %}

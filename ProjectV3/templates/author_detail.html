@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load range from book_templ_tags %}
+{% block title %}
+    作家详情页
+{% endblock %}
+{% block css_code %}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 border-right border-success">
+                <h2 class="display-3">{{ author.name }}</h2>
+                <hr class="border-warning"/>
+                <p><strong>签约出版社：</strong><a href="{% url 'organizations:publisher-detail' author.publisher.pk %}">
+                    {{ author.publisher.name }}</a></p>
+                <p>
+                    <strong>年龄：</strong>{{ author.age }}岁
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <strong>写作年限：</strong>{{ author.workyears }}年
+                </p>
+                <p>
+                    <strong>点击量：</strong>{{ author.clicknums }}次
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <strong>收藏量：</strong>{{ author.favnums }}次
+                </p>
+                <div>
+                    <button class="btn btn-success" id="btn-fav">
+                        {% if has_fav %} 已收藏{% else %} 未收藏 {% endif %}
+                    </button>
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <button class="btn btn-info">分享</button>
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <button class="btn btn-primary">订阅</button>
+                </div>
+            </div>
+            <div class="col-md-4 border-right border-success">
+                <img src="{{ MEDIA_URL }}{{ author.image }}" width="100%"
+                     class="rounded-circle img-thumbnail"/>
+            </div>
+            <div class="col-md-5">
+                <p><strong>作者简介：</strong>
+                    著名专栏作家，娱评人。曾在新浪、21CN、《美眉》杂志、《潇洒》杂志、《温州都市报》等网站报刊杂志开设专栏，出版名人采访集《感情这东西》。
+                    最新作品《最好的女子》、《最爱的男子》、《傲慢即偏见》。
+                </p>
+                <p><strong>写作风格：</strong>{{ author.features }}</p>
+            </div>
+        </div>
+        <hr class="boder border-danger"/>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>他/她的图书</h4>
+                <hr/>
+                <div class="row">
+                    {% for book in author.book_set.all %}
+                        <div class="col-md-5">
+                            <div class="card" style="width: 100%;">
+                                <a href="{% url 'books:book-detail' book.pk %}">
+                                    <img class="card-img-top" src="{{ MEDIA_URL }}{{ book.cover }}">
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ book.title }}</h5>
+                                    <p class="card-text">
+                                        {% for foo in book.starnums|range %}
+                                            <img src="{% static 'images/r_star.png' %}"/>
+                                        {% endfor %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4>他/她的最新文章</h4>
+                <hr/>
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul class="list-unstyled">
+                            {% for article in newest_articles %}
+                                <li class="border-bottom media {% cycle '' 'my-4' %}">
+                                    <a href="{% url 'books:article-detail' article.pk %}">
+                                        <img class="mr-3" src="{{ MEDIA_URL }}{{ article.cover }}"
+                                             height="90" width="120"/>
+                                    </a>
+                                    <div class="media-body">
+                                        <a href="{% url 'books:article-detail' article.pk %}">
+                                            <h5 class="mt-0 mb-1"> {{ article.title }} </h5>
+                                        </a>
+                                        <p>点击量：{{ article.clicknum }}|收藏量：{{ article.favornum }}</p>
+                                        <p>作者发表于{{ article.addtime|date:'SHORT_DATE_FORMAT' }}</p>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        //发送Ajax请求 添加、取消用户收藏
+        function add_fav(current_elem, fav_id, fav_type) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url "operates:add-fav" %}",
+                data: {'fav_id': fav_id, 'fav_type': fav_type},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+
+                    } else if (data.status == 'success') {
+                        current_elem.text(data.msg)
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            //添加、取消用户收藏
+            $("#btn-fav").on('click', function () {
+                add_fav($(this), {{ author.pk }}, 5);
+            });
+        });
+    </script>
+{% endblock %}

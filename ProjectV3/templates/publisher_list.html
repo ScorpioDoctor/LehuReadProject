@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %}
+    出版机构列表页
+{% endblock %}
+
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="row">
+                    <div class="col-12">
+                        <a href="?city=&cat={{ cat }}"
+                           class="btn {% ifequal cid '' %}btn-success{% else %}btn-default{% endifequal %}">所有城市：</a>
+                        {% for city in city_list %}
+                            <a href="?city={{ city.pk }}&cat={{ cat }}"><span
+                                    class="btn {% ifequal cid city.pk|stringformat:'s' %}btn-success{% else %}btn-default{% endifequal %}">
+                                {{ city }}</span></a>
+                        {% endfor %}
+                    </div>
+                    <div class="col-12">
+                        <a href="?city={{ cid }}&cat="
+                           class="btn {% ifequal cat '' %}btn-info{% else %}btn-default{% endifequal %}">
+                            所有类型：</a>
+                        <a href="?city={{ cid }}&cat=gy"><span
+                                class="btn {% ifequal cat 'gy' %}btn-info{% else %}btn-default{% endifequal %}">
+                            国有</span></a>
+                        <a href="?city={{ cid }}&cat=hz"><span
+                                class="btn {% ifequal cat 'hz' %}btn-info{% else %}btn-default{% endifequal %}">
+                            合资</span></a>
+                        <a href="?city={{ cid }}&cat=dz"><span
+                                class="btn {% ifequal cat 'dz' %}btn-info{% else %}btn-default{% endifequal %}">
+                            独资</span></a>
+                        <a href="?city={{ cid }}&cat=sy"><span
+                                class="btn {% ifequal cat 'sy' %}btn-info{% else %}btn-default{% endifequal %}">
+                            私有</span></a>
+                        <a href="?city={{ cid }}&cat=gfz"><span
+                                class="btn {% ifequal cat 'gfz' %}btn-info{% else %}btn-default{% endifequal %}">
+                            股份制</span></a>
+                    </div>
+                </div>
+                <hr/>
+                <div class="row">
+                    {% for publisher in publisher_list.object_list %}
+                        <div class="col-md-3">
+                            <div class="card" style="margin-bottom: 2rem">
+                                <img class="card-img-top" src="{{ MEDIA_URL }}{{ publisher.image }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ publisher.name }}</h5>
+                                    <p class="card-text">{{ publisher.address }}</p>
+                                    <a href="{% url 'orgs:publisher-detail' publisher.pk %}"
+                                       class="btn btn-primary">查看出版社详情</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <hr/>
+                <div id="pagination" style="font-size: larger">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if not publisher_list.has_previous %}disabled{% endif %}">
+                            <a class="page-link" href="?{{ publisher_list.previous_page_number.querystring }}"
+                               tabindex="-1">前一页</a>
+                        </li>
+                        {% for page in publisher_list.pages %}
+                            {% if page %}
+                                {% ifequal page publisher_list.number %}
+                                    <li class="page-item"><a class="page-link">{{ page }}</a></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ page.querystring }}">
+                                            {{ page }}</a>
+                                    </li>
+                                {% endifequal %}
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not publisher_list.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="?{{ publisher_list.next_page_number.querystring }}">下一页</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>出版机构排名</strong>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for rank in publisher_ranks %}
+                                <a class="list-group-item"
+                                   href="{% url 'orgs:publisher-detail' rank.pk %}">{{ rank.name }}</a>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+{% endblock %}

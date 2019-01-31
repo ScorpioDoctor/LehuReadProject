@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load range get_styles get_category_related_books from book_templ_tags %}
+{% block title %}
+    图书阅读页面
+{% endblock %}
+
+{% block css_code %}
+    <style>
+        .chapter {
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <img src="{{ MEDIA_URL }}{{ book.cover }}" height="150px" width="95%">
+                        </div>
+                        <div class="col-md-4">
+                            <p class="h4">
+                                【<strong>{{ book.title }}</strong>】
+                            </p>
+                            <div>
+                                <span>读者数:{{ book.readernum }}人;</span>
+                                <span>章节数:{{ book.chapter_set.count }}章;</span>
+                                <span>总字数:{{ book.get_book_wordcount }}字</span>
+                            </div>
+                            <div>
+                                <span>推荐指数：
+                                    {% for star in book.starnums|range %}
+                                        <img src="{% static 'images/r_star.png' %}">
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <div>
+                                <span>难度系数：{{ book.get_degree_display }} </span>
+                            </div>
+                            <button id="btn-fav" class="btn-success btn" style="display: inline-block">
+                                {% if has_fav %}
+                                    已收藏{% else %}未收藏
+                                {% endif %}
+                            </button>
+                            <button class="btn-danger btn" style="display: inline-block">分享</button>
+                        </div>
+                        <div class="col-md-5">
+                            <blockquote class="blockquote"><strong>简介：</strong>
+                                <span class="mb-0">
+                                    {{ book.abstract }}
+                                </span>
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-md-8">
+                {% for chapter in book.chapter_set.all %}
+                    <div class="chapter" id="ch{{ forloop.counter }}">
+                        <h4 class="btn btn-{{ forloop.counter|get_styles }}" type="button"
+                            data-toggle="collapse" data-target="#chapter{{ forloop.counter }}">
+                            <strong>第{{ forloop.counter }}章：{{ chapter.title }}</strong><span
+                                class="badge badge-light">{{ chapter.article_set.count }}篇</span>
+                        </h4>
+                        <div class="collapse" id="chapter{{ forloop.counter }}">
+                            <ul class="list-group">
+                                {% for article in chapter.article_set.all %}
+                                    <a class="list-group-item" href="{% url 'books:article-detail' article.pk %}"
+                                       target="_blank">
+                                        第{{ forloop.parentloop.counter }}.{{ forloop.counter }}节：{{ article.title }}
+                                        &nbsp;&nbsp;&nbsp;<span style="color: #0b2e13">
+                                        字数：{{ article.wordcount }}&nbsp; word{{ article.wordcount|pluralize }}</span>
+                                    </a>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>图书相关资料下载</strong>
+                    </div>
+                    <ul class="list-group text-left">
+                        {% for resource in book.bookresource_set.all %}
+                            <li class="list-group-item">
+                                <a href="{{ MEDIA_URL }}{{ resource.download }}" target="_blank">
+                                    {{ resource.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <hr/>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>读过该书的同学还读过</strong>
+                    </div>
+                    {% get_category_related_books book.pk as crbooks %}
+                    <ul class="list-group text-left">
+                        {% for crbook in crbooks %}
+                            <li class="list-group-item">
+                                <a href="{% url 'books:book-detail' crbook.pk %}">{{ crbook.title }}</a>
+                                <small>{{ crbook.author.name }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        //发送Ajax请求 添加、取消用户收藏
+        function add_fav(current_elem, fav_id, fav_type) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url "operates:add-fav" %}",
+                data: {'fav_id': fav_id, 'fav_type': fav_type},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+
+                    } else if (data.status == 'success') {
+                        current_elem.text(data.msg)
+                    }
+                },
+            });
+        }
+
+        $(document).ready(function () {
+            //添加、取消用户收藏
+            $("#btn-fav").on('click', function () {
+                add_fav($(this), {{ book.pk }}, 2);
+            });
+            $("#chapter{{ chapter }}").collapse('show');
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %}
+    出版机构详情页
+{% endblock %}
+
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <img src="{{ MEDIA_URL }}{{ publisher.image }}" height="150px" width="95%">
+                    </div>
+                    <div class="col-md-3">
+                        <p class="h4">
+                            <strong>{{ publisher.name }}</strong>
+                        </p>
+                        <span>推荐指数：
+                            {% for star in starnums %}
+                                <img src="{% static 'images/r_star.png' %}">
+                            {% endfor %}
+                        </span>
+                        <br/>
+                        <button id="btn-fav" class="btn-success btn" style="display: inline-block">{% if has_fav %}
+                            已收藏{% else %}未收藏{% endif %}</button>
+                        <button class="btn-danger btn" style="display: inline-block">分享</button>
+                    </div>
+                    <div class="col-md-3">
+                        {% with total=publisher.get_book_count %}
+                            <p>图书总量：{{ total }}本({{ total }}&nbsp;book{{ total|pluralize }})</p>
+                        {% endwith %}
+                        <p>签约作者：{{ publisher.author_set.count }}人</p>
+                        <p>收藏量：{{ publisher.favnums }}</p>
+                        <p>点击量：{{ publisher.clicknums }}次</p>
+                    </div>
+                    <div class="col-md-3">
+                        {{ publisher.abstract }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-md-2">
+                <div class="list-group" id="list-tab" role="tablist">
+                    <a class="list-group-item list-group-item-action active" id="list-profile-list" data-toggle="list"
+                       href="#list-profile" role="tab" aria-controls="profile">出版机构详情</a>
+                    <a class="list-group-item list-group-item-action" id="list-messages-list" data-toggle="list"
+                       href="#list-messages" role="tab" aria-controls="messages">所有出版图书</a>
+                    <a class="list-group-item list-group-item-action" id="list-settings-list" data-toggle="list"
+                       href="#list-settings" role="tab" aria-controls="settings">所有签约作家</a>
+                    <a class="list-group-item list-group-item-action" id="list-settings-list" data-toggle="list"
+                       href="#list-visitions" role="tab" aria-controls="settings">所有读者访客</a>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade  show active" id="list-profile" role="tabpanel"
+                         aria-labelledby="list-profile-list">
+                        <div>
+                            {% autoescape off %}
+                                {{ publisher.desc }}
+                            {% endautoescape %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">
+                        <div class="row">
+                            {% for author in publisher.author_set.all %}
+                                {% for book in author.book_set.all %}
+                                    <div class="col-md-4">
+                                        <div class="card" style="width: 90%;margin-bottom: 2rem">
+                                            <img class="card-img-top" src="{{ MEDIA_URL }}{{ book.cover }}">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ book.title }}</h5>
+                                                <p class="card-text">{{ book.author.name }}</p>
+                                                <a href="{% url 'books:book-detail' book.pk %}" class="btn btn-primary">查看该书详情</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">
+                        <div class="row">
+                            {% for author in publisher.author_set.all %}
+                                <div class="col-md-3" style="margin-bottom: 1.5rem">
+                                    <div class="card" style="width: 100%;">
+                                        <a href="{% url 'organizations:author-detail' author.pk %}">
+                                            <img class="card-img-top" src="{{ MEDIA_URL }}{{ author.image }}"
+                                                 alt="{{ author.image }}">
+                                        </a>
+                                        <div class="card-body">
+                                            <p class="card-text">{{ author.name }}&nbsp;&nbsp;著作{{ author.book_set.count }}部</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="list-visitions" role="tabpanel" aria-labelledby="list-settings-list">
+                        <div class="row">
+                            {% for visit in visitions %}
+                                <div class="col-md-3" style="margin-bottom: 1.5rem">
+                                    <div class="card" style="width: 100%;">
+                                        <a href="{% url 'users:user-center-guest' visit.user.pk %}">
+                                            <img class="card-img-top" src="{{ MEDIA_URL }}{{ visit.user.image }}"/>
+                                        </a>
+                                        <div class="card-body">
+                                            <p class="card-text">{{ visit.user.nickname }}访问{{ visit.visit_count }}次</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>读者咨询</strong>
+                    </div>
+                    <div class="card-body">
+                        <form id="userAskForm">
+                            <div class="form-group">
+                                <input type="text" id="name" name="name" class="form-control" placeholder="请留下你的名字"/>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="mobile" name="mobile" class="form-control"
+                                       placeholder="请留下你的电话"/>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="bookname" name="bookname" class="form-control"
+                                       placeholder="请填写你想看的图书"/>
+                            </div>
+                            <input type="hidden" id="publisher" name="publisher" value="{{ publisher.pk }}"
+                                   class="form-control" placeholder="出版机构"/>
+                            <div class="form-group">
+                                {% csrf_token %}
+                                <input id="btn-usrask" type="text" class="btn btn-success form-control" value="提交表单"/>
+                            </div>
+                        </form>
+                        <p style="color: red" id="errmsg"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+
+        function add_fav(current_elem, fav_id, fav_type) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url "operates:add-fav" %}",
+                data: {'fav_id': fav_id, 'fav_type': fav_type},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+
+                    } else if (data.status == 'success') {
+                        current_elem.text(data.msg)
+                    }
+                },
+            });
+        }
+
+        $(document).ready(function () {
+            //添加、取消用户收藏
+            $("#btn-fav").on('click', function () {
+                add_fav($(this), {{ publisher.id }}, 3);
+            });
+
+            {#用Ajax异步提交表单#}
+            $('#btn-usrask').on('click', function () {
+                $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: "{% url 'operates:user-ask' %}",
+                    data: $('#userAskForm').serialize(),
+                    async: true,
+                    success: function (data) {
+                        if (data.status == 'success') {
+                            $('#userAskForm')[0].reset();
+                            alert("提交成功")
+                        } else if (data.status == 'fail') {
+                            $('#errmsg').html(data.msg)
+                        }
+                    }
+                });
+            });
+        })
+    </script>
+{% endblock %}

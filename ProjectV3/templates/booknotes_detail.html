@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% load book_templ_tags %}
+
+{% block title %}
+    阅读笔记详情页
+{% endblock %}
+
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="card">
+                    {% with booknotes.user as user %}
+                        <div class="card-header">
+                            <strong>作者：{{ user.nickname }}</strong>
+                        </div>
+                        <div class="card-body">
+                            <img class="img-thumbnail" src="{{ MEDIA_URL }}{{ user.image }}"
+                                 width="100%">
+                            <p>粉丝数量：111人。笔记数量：{{ user.booknotes_set.count }}篇</p>
+                        </div>
+                    {% endwith %}
+                </div>
+                <br/>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>该作者的文章归档</strong>
+                    </div>
+                    {% get_archive_dates as archieve_dates %}
+                    <div class="card-body">
+                        {% for archdate in archieve_dates %}
+                            <li>
+                                <a href="{% url 'books:booknotes_archive' archdate.year archdate.month archdate.day %}">
+                                    {{ archdate.year }}年{{ archdate.month }}月{{ archdate.day }}日
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </div>
+                </div>
+                <br/>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>本文最近访客</strong>
+                    </div>
+                    <div class="card-body">
+                        暂无访客
+                    </div>
+                </div>
+                <br/>
+            </div>
+            <div class="col-md-7 col-sm-12">
+                <div class="text-left">
+                    <span class="h3">{{ booknotes.title }}</span><br>
+                    <span>时间：{{ booknotes.addtime }}</span>
+                    <button class="btn btn-warning" id="btn-fav">
+                        {% if has_fav %}
+                            已收藏{% else %}未收藏
+                        {% endif %}
+                    </button>
+                    <button class="btn btn-danger" id="btn-share">分享</button>
+                </div>
+                <hr/>
+                <div class="article-content">
+                    {{ booknotes.notes|safe }}
+                </div>
+                <hr/>
+                <div class="comment-area">
+                    <div class="input-group mb-3">
+                        <div class="input-group">
+                            <textarea class="form-control" id="comment-area"></textarea>
+                            <div class="input-group-prepend">
+                                <button id="btn-comment" class="btn btn-outline-secondary"
+                                        type="button">提交评论
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="commentList">
+                        {% get_booknotes_comments booknotes.pk as art_comments %}
+                        <ul class="list-unstyled" id="ul-comment-list">
+                            <li style="display: none"></li>
+                            {% for cmmt in art_comments %}
+                                <li class="media {% cycle 'my-4' '' %}">
+                                    <img class="mr-3 rounded-circle" src="{{ MEDIA_URL }}{{ cmmt.user.image }}"
+                                         height="60" width="60">
+                                    <div class="media-body border">
+                                        <h6 class="mt-0 mb-1">{{ cmmt.user.nickname }}发表于{{ cmmt.addtime }}</h6>
+                                        <p>{{ cmmt.comments }}</p>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>本文相关标签</strong>
+                    </div>
+                    <div class="card-body">
+                        {% for bktag in booknotes.tags.all %}
+                            <span class="badge badge-{{ forloop.counter|get_styles }}">
+                                {{ bktag.tagname }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <br/>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>相关文章推荐</strong>
+                    </div>
+                    {% get_category_related_booknotes booknotes.category_id booknotes.pk as related_booknotes %}
+                    <ul class="list-group text-left">
+                        {% for rbooknote in related_booknotes %}
+                            <li class="list-group-item">
+                                <a href="{% url 'books:booknotes-detail' rbooknote.pk %}">
+                                    {{ rbooknote.title }}
+                                </a>
+                                <small>{{ rbooknote.user.nickname }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        //发送Ajax请求 添加、取消用户收藏
+        function add_fav(current_elem, fav_id, fav_type) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url "operates:add-fav" %}",
+                data: {'fav_id': fav_id, 'fav_type': fav_type},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+                    } else if (data.status == 'success') {
+                        current_elem.text(data.msg)
+                    }
+                }
+            });
+        }
+
+        //添加、取消用户收藏
+        $("#btn-fav").on('click', function () {
+            if ("{{ request.user.is_authenticated }}" == "True") {
+                add_fav($(this), {{ booknotes.id }}, 4);
+            } else {
+                alert("请先登录再收藏！")
+            }
+        });
+        $("#btn-share").on('click', function () {
+            alert("哈哈哈哈哈！");
+        });
+        //添加评论
+        $('#btn-comment').on('click', function () {
+            if ("{{ request.user.is_authenticated }}" == "False") {
+                alert("请先登录在发表评论！");
+                return;
+            }
+            var notesId = "{{ booknotes.pk }}";
+            var comments = $("#comment-area").val();
+            if (comments == "") {
+                alert("评论不能为空");
+                return
+            }
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url 'operates:user-comment' %}",
+                data: {'notes_id': notesId, 'comments': comments, 'cmmt_type': 'notes'},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+
+                    } else if (data.status == 'success') {
+                        {#window.location.reload();//刷新当前页面.#}
+                        alert(data.msg);
+                        let date = new Date();
+                        let addtime = date.toLocaleDateString() + date.toLocaleTimeString();
+                        let commtLi = `
+                                <li class="media my-4">
+                                    <img class="mr-3 rounded-circle" src="{{ MEDIA_URL }}{{ request.user.image }}"
+                                         height="60" width="60">
+                                    <div class="media-body border">
+                                        <h6 class="mt-0 mb-1">{{ request.user.nickname }}发表于${addtime}</h6>
+                                        <p>${comments}</p>
+                                    </div>
+                                </li>
+                              `
+                        $("#ul-comment-list li").eq(0).before(commtLi);
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

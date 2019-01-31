@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+    用户访客中心
+{% endblock %}
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 border-right border-success">
+                <h2 class="display-3">{{ user.nickname }}</h2>
+                <hr class="border-warning"/>
+                <p>
+                    <strong>生日：</strong>{{ user.birthday }}
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <strong>性别：</strong>{{ user.get_gender_display }}
+                </p>
+                <p><strong>地址：</strong>{{ user.address }}</p>
+                <p>
+                    <strong>关注数：</strong>{{ user.followed_num }}人
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <strong>粉丝数：</strong>{{ user.follower_num }}人
+                </p>
+                <div>
+                    <button class="btn btn-success" id="btn-follow">
+                        {% if has_follow %}已关注{% else %}关注{% endif %}
+                    </button>
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <button class="btn btn-info">分享</button>
+                    <span class="border-right border-dark" style="margin:0 0.5rem"></span>
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                            data-target="#exampleModal">私信
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 border-right border-success">
+                <img src="{{ MEDIA_URL }}{{ user.image }}" width="100%"
+                     class="rounded-circle img-thumbnail"/>
+                <p class="lead text-center"><strong>头像</strong></p>
+            </div>
+            <div class="col-md-5">
+                <p><strong>{{ user.nickname }}的自我介绍：</strong>
+                    著名专栏作家，娱评人。曾在新浪、21CN、《美眉》杂志、《潇洒》杂志、《温州都市报》等网站报刊杂志开设专栏，出版名人采访集《感情这东西》。
+                    最新作品《最好的女子》、《最爱的男子》、《傲慢即偏见》。
+                </p>
+                <p><strong>人生格言：</strong>真的勇士，敢于直面惨淡的人生，敢于正视亮丽的鲜血！！！</p>
+            </div>
+        </div>
+        <hr class="boder border-danger"/>
+        {% if readed_books %}
+            <h4>{% ifequal user.gender 'male' %}他{% else %}她{% endifequal %}读过的书</h4>
+            <hr/>
+            <div class="row">
+                {% for book in readed_books %}
+                    <div class="col-md-3">
+                        <div class="card" style="width: 90%;margin-bottom: 2rem">
+                            <a href="{% url 'books:book-detail' book.pk %}">
+                                <img class="card-img-top" src="{{ MEDIA_URL }}{{ book.cover }}"
+                                     alt="{{ book.cover }}"/>
+                            </a>
+                            <div class="card-body">
+                                <h6 class="card-title"><strong>{{ book.title }}</strong></h6>
+                                <p class="card-text">作者:{{ book.author.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="row">
+            {% if user.booknotes_set.all %}
+                <div class="col-md-6">
+                    <h4>{% ifequal user.gender 'male' %}他{% else %}她{% endifequal %}
+                        的读书笔记
+                    </h4>
+                    <hr/>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <ul class="list-unstyled">
+                                {% for booknote in user.booknotes_set.all %}
+                                    <li class="border-bottom media ">
+                                        <a href="{% url 'books:booknotes-detail' booknote.pk %}">
+                                            <img class="mr-3" src="{{ MEDIA_URL }}{{ booknote.cover }}"
+                                                 height="90" width="120"/>
+                                        </a>
+                                        <div class="media-body">
+                                            <a href="{% url 'books:booknotes-detail' booknote.pk %}">
+                                                <h5 class="mt-0 mb-1"> {{ booknote.title }} </h5>
+                                            </a>
+                                            <p>点击量：{{ booknote.clicknum }}
+                                                |收藏量：{{ booknote.favornum }}
+                                                |评论量：{{ booknote.commtnum }}
+                                            </p>
+                                            <p>作者发表于{{ booknote.addtime }}</p>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if visitions.all %}
+                <div class="col-md-6">
+                    <h4>{% ifequal user.gender 'male' %}他{% else %}她{% endifequal %}的访客</h4>
+                    <hr/>
+                    <div class="row">
+                        {% for visition in visitions %}
+                            {% with visition.user as visitor %}
+                                <div class="col-md-4">
+                                    <div class="card" style="width: 100%;">
+                                        <a href="{% url 'users:user-center-guest' visitor.pk %}">
+                                            <img class="card-img-top" src="{{ MEDIA_URL }}{{ visitor.image }}"/>
+                                        </a>
+                                        <div class="card-footer">
+                                            <p class="card-text">{{ visitor.nickname }}访问{{ visition.visit_count }}次</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# 模态对话框#}
+    <div>
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">发送私信</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form" method="post"
+                              action="{% url 'users:user-center-guest' user.pk %}">
+                            <div class="form-group">
+                                <label for="recipient-name" class="col-form-label">收信人:</label>
+                                <input type="text" class="form-control" id="recipient-name" name="nickname"
+                                       value="{{ user.nickname }}" disabled>
+                                <input type="hidden" class="form-control" id="recipient-id" name="userid"
+                                       value="{{ user.pk }}"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="message-text" class="col-form-label">消息内容:</label>
+                                <textarea class="form-control" id="message-text" name="message" required
+                                          maxlength="50" minlength="5"></textarea>
+                            </div>
+                            {% csrf_token %}
+                            <input type="submit" name="submit" class="btn btn-primary" id="submit" value="发送消息"/>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        function add_follower(current_elem, followed, follower) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url "operations:user-follow" %}",
+                data: {'followed': followed, 'follower': follower},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+                    } else if (data.status == 'success') {
+                        current_elem.text(data.msg)
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $("#btn-follow").on('click', function () {
+                if ("{{ request.user.is_authenticated }}" == "True") {
+                    if ("{{ user.id }}" == "{{ request.user.id }}") {
+                        {#$(this).disable();#}
+                        alert('不能自己关注自己！');
+                    } else {
+                        add_follower($(this), {{ user.id }}, {{ request.user.id }});
+                    }
+                } else {
+                    alert('请先登录！');
+                }
+            })
+        })
+    </script>
+{% endblock %}

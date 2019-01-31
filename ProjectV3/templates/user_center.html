@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load get_archive_messages from user_templ_tag %}
+
+{% block title %}
+    用户个人中心
+{% endblock %}
+{% block css_code %}
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/timeline.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                {% include 'user_center_menu.html' %}
+            </div>
+            <div class="col-md-10">
+                <!-- The time line -->
+                <ul class="timeline">
+                    {% if msg_dates %}
+                        {% for msg_date in msg_dates %}
+                            <li class="time-label">
+                                <span class="bg-{% cycle 'yellow' 'green' %}">
+                                    {{ msg_date.year }}年{{ msg_date.month }}月{{ msg_date.day }}日
+                                </span>
+                            </li>
+                            {% get_archive_messages request.user.id msg_date as archive_messages %}
+                            {% for arch_msg in archive_messages %}
+                                <!-- timeline item -->
+                                <li>
+                                    <i class="fa {% cycle 'fa-envelope bg-blue' 'fa-envelope bg-maroon' %}"></i>
+                                    <div class="timeline-item">
+                                        <span class="time"><i
+                                                class="fa fa-clock-o"></i> {{ arch_msg.addtime|time }}</span>
+                                        <h3 class="timeline-header"><a href="#">{{ arch_msg.from_user.nickname }}</a>
+                                            给你发送了一份私信</h3>
+                                        <div class="timeline-body">
+                                            {{ arch_msg.message }}
+                                        </div>
+                                        <div class="timeline-footer">
+                                            <a class="btn btn-info btn-xs">标记为已读</a>
+                                            <a class="btn btn-danger btn-xs btn-del-msg"
+                                               data-msg-id="{{ arch_msg.id }}"
+                                               data-from-user="{{ arch_msg.from_user.id }}">
+                                                删除</a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <!-- END timeline item -->
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <h2>你还未收到过别人的私信喔~~~</h2>
+                    {% endif %}
+                    <li>
+                        <i class="fa fa-clock-o bg-gray"></i>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+
+        //发送Ajax请求删除用户消息
+        function delete_msg(current_elem, msg_id, from_user_id, to_user_id) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url 'users:user-center' %}",
+                data: {'msg_id': msg_id, 'from_user_id': from_user_id, 'to_user_id': to_user_id},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        if (data.msg == '用户未登录') {
+                            window.location.href = "{% url 'users:login' %}";
+                        } else {
+                            alert(data.msg)
+                        }
+                    } else if (data.status == 'success') {
+                        current_elem.text(data.msg)
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $("#m-1").addClass('active');
+            $(".btn-del-msg").on("click", function () {
+                var from_user_id = $(this).data('from-user');
+                var msg_id = $(this).data('msg-id');
+                delete_msg($(this), msg_id, from_user_id, "{{ request.user.id }}")
+            });
+        })
+    </script>
+{% endblock %}

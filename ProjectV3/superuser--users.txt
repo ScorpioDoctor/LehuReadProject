@@ -1,0 +1,14 @@
+manage.py@ProjectV3 > createsuperuser
+"D:\Program Files\JetBrains\PyCharm 2017.3.3\bin\runnerw.exe" D:\Software\Anaconda\envs\lehu\python.exe "D:\Program Files\JetBrains\PyCharm 2017.3.3\helpers\pycharm\django_manage.py" createsuperuser "G:/Web Development/WebProjects2019/LehuProject/ProjectV3"
+Username:  zhjm
+Email address:  zhjm@qq.com
+Warning: Password input may be echoed.
+Password:  qazwsx123
+Warning: Password input may be echoed.
+Password (again):  qazwsx123
+Superuser created successfully.
+
+
+普通用户：
+antares123
+qazwsx123

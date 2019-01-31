@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load book_templ_tags %}
+{% block title %}
+    读书笔记列表页
+{% endblock %}
+
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2">
+                {% get_categories as categories %}
+                <div class="list-group">
+                    <a id="ctg-0" href="?ctg=&order={{ order }}" class="list-group-item list-group-item-action">
+                        所有分类
+                    </a>
+                    {% for catg in categories %}
+                        <a id="ctg-{{ catg.pk }}" href="?ctg={{ catg.pk }}&order={{ order }}"
+                           class="list-group-item list-group-item-action">
+                            {{ catg.catname }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-7 col-sm-12">
+                <div class="text-center">
+                    <a class="btn btn-default" style="color: #4cae4c" href="?order=addtime">按时间排序</a>
+                    <a class="btn btn-default" style="color: #4cae4c" href="?order=clicknum">按浏览量排序</a>
+                    <a class="btn btn-default" style="color: #4cae4c" href="?order=commtnum">按评论量排序</a>
+                    <a class="btn btn-default" style="color: #4cae4c" href="?order=favornum">按收藏量排序</a>
+                </div>
+                <hr/>
+                <ul class="list-unstyled">
+                    {% for notes in booknotes_list.object_list %}
+                        <li class="border-bottom media {% cycle '' 'my-4' %}">
+                            <a href="{% url 'books:booknotes-detail' notes.pk %}">
+                                <img class="mr-3" src="{{ MEDIA_URL }}{{ notes.cover }}"
+                                     height="90" width="120"/>
+                            </a>
+                            <div class="media-body">
+                                <a href="{% url 'books:booknotes-detail' notes.pk %}">
+                                    <h5 class="mt-0 mb-1">
+                                        {{ notes.title }}
+                                        <small>
+                                            {% for notetag in notes.tags.all %}
+                                                <a href="?tag={{ notetag.pk }}&order={{ order }}"
+                                                   class="badge badge-{{ forloop.counter|get_styles }}">
+                                                    {{ notetag.tagname }}
+                                                </a>
+                                            {% endfor %}
+                                        </small>
+                                    </h5>
+                                </a>
+                                <p>{{ notes.abstract }}</p>
+                                <p>作者：<a href="#">{{ notes.user.nickname }}</a>&nbsp;&nbsp;发表于&nbsp;
+                                    {{ notes.addtime|date:'SHORT_DATE_FORMAT' }}
+                                </p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if not booknotes_list.has_previous %}disabled{% endif %}">
+                            <a class="page-link" href="?{{ booknotes_list.previous_page_number.querystring }}"
+                               tabindex="-1">前一页</a>
+                        </li>
+                        {% for page in booknotes_list.pages %}
+                            {% if page %}
+                                {% ifequal page booknotes_list.number %}
+                                    <li class="page-item"><a class="page-link">{{ page }}</a></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ page.querystring }}">
+                                            {{ page }}</a>
+                                    </li>
+                                {% endifequal %}
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not booknotes_list.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="?{{ booknotes_list.next_page_number.querystring }}">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>标签云</strong>
+                    </div>
+                    <div class="card-body">
+                        {% get_tags as  book_tags %}
+                        {% for btag in book_tags %}
+                            <a href="?tag={{ btag.pk }}&order={{ order }}"
+                               class="badge badge-{{ forloop.counter|get_styles }}">
+                                {{ btag.tagname }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <br/>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>热门推荐</strong>
+                    </div>
+                    {% get_hotest_booknotes as hotest_booknotes %}
+                    <ul class="list-group text-left">
+                        {% for hbnote in hotest_booknotes %}
+                            <li class="list-group-item">
+                                <a href="{% url 'books:booknotes-detail' hbnote.pk %}">
+                                    {{ hbnote.title }}
+                                </a>
+                                <small>{{ hbnote.user.nickname }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        var ctg = "{{ ctg }}";
+        $(document).ready(function () {
+            $("#ctg-" + ctg).addClass('active');
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% load get_favors_count from user_templ_tag %}
+{% get_favors_count request.user.id as total_count %}
+<div class="list-group">
+    <a id="m-1" href="{% url 'users:user-center' %}" class="list-group-item list-group-item-action">
+        我的中心主页</a>
+    <a id="m-2" href="{% url 'users:user-info' %}" class="list-group-item list-group-item-action">
+        我的信息管理</a>
+    <a id="m-3" href="{% url 'users:user-notes' %}" class="list-group-item list-group-item-action">
+        读书笔记管理</a>
+    <a id="m-4" href="{% url 'users:user-favors' %}" class="list-group-item list-group-item-action ">
+        我的收藏管理<span class="badge badge-light">{{ total_count }}</span></a>
+    <a id="m-5" href="{% url 'users:user-relations' %}" class="list-group-item list-group-item-action">
+        我的关系管理</a>
+    <a id="m-6" href="{% url 'users:user-messages' %}" class="list-group-item list-group-item-action">
+        我的消息管理<span class="badge badge-info">{{ request.user.get_messages_count }}</span></a>
+</div>

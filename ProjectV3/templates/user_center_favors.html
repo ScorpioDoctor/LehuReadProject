@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+    用户个人中心
+{% endblock %}
+{% block css_code %}
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/timeline.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                {% include 'user_center_menu.html' %}
+            </div>
+            <div class="col-md-10">
+                <h5>用户的个人收藏管理中心</h5>
+                <hr/>
+                <div>
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#favor-articles" role="tab">
+                                收藏的文章<span class="badge badge-danger">{{ favor_articles|length }}</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#favor-book" role="tab">
+                                收藏的书籍<span class="badge badge-success">{{ favor_books|length }}</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#favor-publisher" role="tab">
+                                收藏的出版社<span class="badge badge-dark">{{ favor_pubs|length }}</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#favor-notes" role="tab">
+                                收藏的读书笔记<span class="badge badge-warning">{{ favor_notes|length }}</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#favor-authors" role="tab">
+                                收藏的作家<span class="badge badge-primary">
+                                {{ favor_authors.count }}</span></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="favor-articles" role="tabpanel">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>标题</th>
+                                    <th>图书</th>
+                                    <th>作者</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for article in favor_articles %}
+                                    {% with book=article.chapter.book %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ article.title }}</td>
+                                            <td>
+                                                <a href="{% url 'books:book-detail' book.pk %}">
+                                                    {{ book.title }}
+                                                </a>
+                                            </td>
+                                            <td>{{ book.author }}</td>
+                                            <td>
+                                                <a class="btn-block"
+                                                   href="{% url 'books:article-detail' article.pk %}">查看</a>
+                                            </td>
+                                        </tr>
+                                    {% endwith %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                    </li>
+                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="tab-pane fade" id="favor-book" role="tabpanel">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>书籍名称</th>
+                                    <th>书籍作者</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for book in favor_books %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ book.title }}</td>
+                                        <td>{{ book.author }}</td>
+                                        <td>
+                                            <a class="btn-block"
+                                               href="{% url 'books:book-detail' book.pk %}">查看</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                    </li>
+                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="tab-pane fade" id="favor-publisher" role="tabpanel">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>机构名称</th>
+                                    <th>机构城市</th>
+                                    <th>图书数量</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for pub in favor_pubs %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ pub.name }}</td>
+                                        <td>{{ pub.city }}</td>
+                                        <td>{{ pub.get_book_count }}</td>
+                                        <td>
+                                            <a class="btn-block"
+                                               href="{% url 'organizations:publisher-detail' pub.pk %}">
+                                                查看</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                    </li>
+                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="tab-pane fade" id="favor-notes" role="tabpanel">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>笔记名称</th>
+                                    <th>笔记作者</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for notes in favor_notes %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ notes.title }}</td>
+                                        <td>{{ notes.user.nickname }}</td>
+                                        <td>
+                                            <a class="btn-block"
+                                               href="{% url 'books:booknotes-detail' notes.pk %}">查看</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                    </li>
+                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="tab-pane fade" id="favor-authors" role="tabpanel">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>作家名字</th>
+                                    <th>著作数量</th>
+                                    <th>被收藏量</th>
+                                    <th>签约出版社</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for author in favor_authors %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ author.name }}</td>
+                                        <td>{{ author.book_set.count }}</td>
+                                        <td>{{ author.favnums }}</td>
+                                        <td>
+                                            <a href="{% url 'orgs:publisher-detail' author.publisher.pk %}">
+                                                {{ author.publisher.name }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a class="btn-block"
+                                               href="{% url 'organizations:author-detail' author.pk %}">
+                                                查看
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                    </li>
+                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#m-4").addClass('active')
+        })
+    </script>
+{% endblock %}

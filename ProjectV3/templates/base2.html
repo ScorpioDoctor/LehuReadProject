@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <title>乐乎在线阅读网登录</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+    {% block css_code %}
+    {% endblock %}
+</head>
+
+<body>
+
+<header>
+    <div class="c-box fff-box">
+        <div class="wp header-box">
+            <p class="fl hd-tips">乐乎在线阅读网，在线学习平台！</p>
+            <ul class="fr hd-bar">
+                <li>服务电话：<span>110110110110</span></li>
+                <li class="active"><a href="{% url 'users:login' %}">[登录]</a></li>
+                <li><a href="{% url 'users:register' %}">[注册]</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+{% block content %}
+{% endblock %}
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/unslider.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/login.js' %}" type="text/javascript"></script>
+
+{% block js_code %}{% endblock %}
+
+</body>
+</html>

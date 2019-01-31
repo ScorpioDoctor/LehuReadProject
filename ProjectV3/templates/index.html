@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load get_styles from book_templ_tags %}
+{% block title %}
+    首页
+{% endblock %}
+
+{% block css_code %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {#        轮播图#}
+        <div class="row clearfix">
+            <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    {% for lunbo in lunbotus %}
+                        <li data-target="#carouselExampleIndicators" data-slide-to="{{ forloop.counter0 }}"
+                            class="{% ifequal forloop.counter0 0 %}active{% endifequal %}"></li>
+                    {% endfor %}
+                </ol>
+                <div class="carousel-inner">
+                    {% for lunbo in lunbotus %}
+                        <div class="carousel-item {% ifequal forloop.counter0 0 %}active{% endifequal %}">
+                            <img class="d-block w-100" src="{{ MEDIA_URL }}{{ lunbo.image }}"
+                                 width="1200" height="300" alt="First slide">
+                            <div class="carousel-caption d-none d-md-block text-primary">
+                                <h3>{{ lunbo.title }}</h3>
+                                <p>{{ lunbo.info }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">上一个</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">下一个</span>
+                </a>
+            </div>
+        </div>
+        {#        推荐作者#}
+        <div class="page-header text-center">
+            <h3>推荐作者</h3>
+            <hr/>
+        </div>
+        <div style="margin-bottom: 1.5rem" class="row clearfix">
+            {% for recmmd_author in recmmd_authors %}
+                <div class="col-md-2 column">
+                    <div class="card bg-light text-black">
+                        <a href="{% url 'organizations:author-detail' recmmd_author.pk %}" target="_blank">
+                            <img class="card-img" src="{{ MEDIA_URL }}{{ recmmd_author.image }}"
+                                 height="120" width="160" alt="Card image">
+                            <div class="card-img-overlay">
+                                <h5 class="card-title" style="color: red"><strong>{{ recmmd_author.name }}</strong></h5>
+                                <p class="card-text" style="color: #fff">著作：{{ recmmd_author.book_set.count }}部</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {#        推荐图书#}
+        <div class="page-header text-center">
+            <h3>推荐图书<a href="{% url 'books:book-list' %}" target="_blank">
+                <small>更多图书</small>
+            </a></h3>
+            <hr/>
+        </div>
+        <div style="margin-bottom: 1.5rem" class="row mb-2">
+            {% for recmmd_book in recmmd_books %}
+                <div class="col-md-6">
+                    <div class="card flex-md-row mb-4 box-shadow h-md-200">
+                        <div class="card-body d-flex flex-column align-items-start">
+                            <strong class="d-inline-block mb-2 text-{{ forloop.counter|get_styles }}">
+                                {{ recmmd_book.category.catname }}</strong>
+                            <h4 class="mb-0">
+                                <a class="text-dark" href="{% url 'books:book-detail' recmmd_book.pk %}"
+                                   target="_blank">
+                                    {{ recmmd_book.title }}
+                                </a>
+                            </h4>
+                            <p class="card-text mb-auto my-2">
+                                <a href="{% url 'organizations:author-detail' recmmd_book.author.pk %}">
+                                    <strong style="color: #0b2e13">作者：{{ recmmd_book.author.name }}</strong></a></p>
+                            <div class="mb-1 text-muted">
+                                上架时间:{{ recmmd_book.addtime|date:'Y年M' }}
+                                <a href="{% url 'books:book-read' recmmd_book.pk %}" target="_blank">前去阅读</a>
+                            </div>
+
+                        </div>
+                        <img class="card-img-right flex-auto d-none d-lg-block"
+                             src="{{ MEDIA_URL }}{{ recmmd_book.cover }}"
+                             width="240" height="170" alt="Card image cap">
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {#        推荐读书笔记#}
+        <div class="page-header text-center">
+            <h3>热门读书笔记<a href="{% url 'books:booknotes-list' %}" target="_blank">
+                <small>更多笔记</small>
+            </a></h3>
+            <hr/>
+        </div>
+        <div style="margin-bottom: 1.5rem" class="row clearfix">
+            <div class="col-md-12 column">
+                <ul class="list-unstyled">
+                    {% for recmmd_note in recmmd_notes %}
+                        <li class="media {% cycle '' 'my-4' %}">
+                            <a href="{% url 'books:booknotes-detail' recmmd_note.pk %}" target="_blank">
+                                <img class="mr-3" src="{{ MEDIA_URL }}{{ recmmd_note.cover }}"
+                                     height="120" width="180" alt="Generic placeholder image">
+                            </a>
+                            <div class="media-body">
+                                <h5 class="mt-0 mb-1">
+                                    <a href="{% url 'books:booknotes-detail' recmmd_note.pk %}" target="_blank">
+                                        <strong>{{ recmmd_note.title }}</strong></h5>
+                                    </a>
+                                <p>作者：<a href="{% url 'users:user-center-guest' recmmd_note.user_id %}" target="_blank">
+                                    {{ recmmd_note.user.nickname }}</a>&nbsp;发表于{{ recmmd_note.addtime|date }}</p>
+                                <p class="lead">摘要：{{ recmmd_note.abstract }}</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {#        优秀出版社#}
+        <div class="page-header text-center">
+            <h3>优秀出版社<a href="{% url 'organizations:publisher-list' %}" target="_blank">
+                <small>更多出版机构</small>
+            </a></h3>
+            <hr/>
+        </div>
+        <div style="margin-bottom: 1.5rem" class="row clearfix">
+            {% for recmmd_publisher in recmmd_publishers %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card mb-4 box-shadow">
+                        <a href="{% url 'organizations:publisher-detail' recmmd_publisher.pk %}" target="_blank">
+                            <img class="card-img-top" src="{{ MEDIA_URL }}{{ recmmd_publisher.image }}">
+                        </a>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong>{{ recmmd_publisher.name }}</strong>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div style="margin-right: 0.3rem">
+                                    <small class="text-muted">
+                                        签约作者：{{ recmmd_publisher.author_set.count }}&nbsp;名
+                                    </small>
+                                </div>
+                                <div>
+                                    <small class="text-muted">
+                                        出版图书：{{ recmmd_publisher.get_book_count }}&nbsp;本
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {#        最佳读者#}
+        <div class="page-header text-center">
+            <h3>最佳读者</h3>
+            <hr/>
+        </div>
+        <div style="margin-bottom: 1.5rem" class="row clearfix">
+            {% for recmmd_reader in recmmd_readers %}
+                <div class="col-md-2">
+                    <div class="card" style="width: 100%;">
+                        <a href="{% url 'users:user-center-guest' recmmd_reader.pk %}">
+                            <img class="card-img-top" src="{{ MEDIA_URL }}{{ recmmd_reader.image }}"/>
+                        </a>
+                        <div class="card-footer">
+                            <p class="card-text">{{ recmmd_reader.nickname }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

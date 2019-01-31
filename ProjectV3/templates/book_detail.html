@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load get_tag_related_books get_styles from book_templ_tags %}
+
+{% block title %}
+    图书详情页
+{% endblock %}
+
+{% block css_code %}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div>
+                    <span class="h3">【书】<strong>{{ book.title }}</strong></span>
+                    <span class="h6">{{ book.addtime|date:"SHORT_DATE_FORMAT" }}上架</span>
+                    <hr/>
+                </div>
+                {% with book.chapter_set.count as chaptercount %}
+                    {% with book.booknotes_set.count as notescount %}
+                        <div>
+                            <span class="btn btn-default">{{ book.clicknum }}次浏览</span>
+                            <span class="btn btn-default">{{ book.readernum }}人阅读</span>
+                            <span class="btn btn-default">{{ book.favornum }}人收藏</span>
+                            <span class="btn btn-default">{{ book.favornum }}条评论</span>
+                            <span class="btn btn-default">{{ chaptercount }}个章节</span>
+                            <span class="btn btn-default">{{ notescount }}篇笔记</span>
+                            <span class="btn btn-success" id="btn-read">阅读</span>
+                            <span class="btn btn-info">收藏</span>
+                            <span class="btn btn-warning">分享</span>
+                            <hr/>
+                        </div>
+                        <div>
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-toggle="tab" href="#book-introduction"
+                                       role="tab">书籍介绍</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" href="#book-notes" role="tab">
+                                        相关读书笔记<span class="badge badge-info">
+                                {{ notescount }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" href="#book-chapter" role="tab">
+                                        所有章节<span class="badge badge-info">
+                                {{ chaptercount }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" href="#book-visitors" role="tab">
+                                        所有访客<span class="badge badge-info">{{ visitions.count }}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="myTabContent" style="margin-top: 1rem">
+                                <div class="tab-pane fade show active" id="book-introduction" role="tabpanel">
+                                    <div>
+                                        {% autoescape off %}
+                                            {{ book.desc }}
+                                        {% endautoescape %}
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="book-notes" role="tabpanel">
+                                    <ul class="list-unstyled">
+                                        {% for booknotes in booknotes_list %}
+                                            <li class="media {% cycle '' 'my-4' %}">
+                                                <a href="{% url 'books:booknotes-detail' booknotes.pk %}">
+                                                    <img class="mr-3" src="{{ MEDIA_URL }}{{ booknotes.cover }}"
+                                                         height="90" width="120">
+                                                </a>
+                                                <div class="media-body">
+                                                    <a href="{% url 'books:booknotes-detail' booknotes.pk %}">
+                                                        <h5 class="mt-0 mb-1">{{ booknotes.title }}</h5>
+                                                    </a>
+                                                    {{ booknotes.abstract }}
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <hr/>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination justify-content-center">
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                            </li>
+                                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">下一页</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                                <div class="tab-pane fade" id="book-chapter" role="tabpanel">
+                                    <div class="row">
+                                        {% for chapter in book.chapter_set.all %}
+                                            <div class="col-md-4" style="margin-bottom: 1.5rem">
+                                                <div class="card" style="width: 96%;">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">
+                                                            第{{ forloop.counter }}章:{{ chapter.title }}</h5>
+                                                        <span class="card-text">字数：{{ chapter.get_chapter_wordcount }}个字</span>
+                                                        <a href="{% url 'books:book-read' book.pk %}?ch={{ forloop.counter }}#ch{{ forloop.counter }}"
+                                                           class="card-link">阅读</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <hr/>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination justify-content-center">
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" tabindex="-1">前一页</a>
+                                            </li>
+                                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#">下一页</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                                <div class="tab-pane fade" id="book-visitors" role="tabpanel">
+                                    <div class="row">
+                                        {% for visit in visitions %}
+                                            <div class="col-md-3" style="margin-bottom: 1.5rem">
+                                                <div class="card">
+                                                    <a href="{% url 'users:user-center-guest' visit.user_id %}">
+                                                        <img class="card-img-top"
+                                                             src="{{ MEDIA_URL }}{{ visit.user.image }}">
+                                                    </a>
+                                                    <div class="card-body">
+                                                        <p class="card-text">
+                                                            {{ visit.user.nickname }}访问{{ visit.visit_count }}次
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endwith %}
+            </div>
+            <div class="col-md-4">
+                <div class="card" style="margin-bottom: 1rem">
+                    <figure class="figure text-center">
+                        <img src="{{ MEDIA_URL }}{{ book.cover }}" class="figure-img rounded-circle"
+                             width="70%">
+                        <figcaption class="figure-caption text-center">
+                            本书作者：<strong>{{ book.author }}</strong>
+                        </figcaption>
+                    </figure>
+                </div>
+                <div class="card" style="margin-bottom: 1rem">
+                    <div class="card-header">
+                        <strong>该书标签云</strong>
+                    </div>
+                    <div class="card-body">
+                        {% for btag in book.tags.all %}
+                            <a href="?tag={{ btag.pk }}" class="badge badge-{{ forloop.counter|get_styles }}">
+                                {{ btag.tagname }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <strong>相关书籍推荐</strong>
+                    </div>
+                    <ul class="list-group text-left">
+                        {% get_tag_related_books book.pk as rbooks %}
+                        {% for rbook in rbooks %}
+                            <li class="list-group-item">
+                                <a href="{% url 'books:book-detail' rbook.pk %}">{{ rbook.title }}</a>
+                                <small>{{ rbook.author }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#btn-read").on("click", function () {
+                window.location.href = "{% url 'books:book-read' book.pk %}"
+            })
+        })
+    </script>
+{% endblock %}

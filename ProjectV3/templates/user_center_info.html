@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}
+    用户个人中心
+{% endblock %}
+{% block css_code %}
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/timeline.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                {% include 'user_center_menu.html' %}
+            </div>
+            <div class="col-md-10">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>修改用户密码</h5>
+                        <form method="post" action="{% url 'users:user-info' %}">
+                            <div class="form-group">
+                                <input type="password" id="passward1" name="password1" class="form-control"
+                                       placeholder="请输入您的新密码" required minlength="5">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" id="passward2" name="password2" class="form-control"
+                                       placeholder="请再次输入您的新密码" required minlength="5">
+                            </div>
+                            {% csrf_token %}
+                            <input type="submit" name="submit" class="btn btn-primary" value="修改密码"/>
+                        </form>
+                        <p style="color: red">{{ pwdmsg }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>修改用户邮箱</h5>
+                        <form method="post" action="{% url 'users:user-info' %}">
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           placeholder="请输入您要绑定的新邮箱" required>
+                                    <div class="input-group-append">
+                                        <input type="submit" class="input-group-btn" name="submit"
+                                               value="获取邮箱验证码"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="verifycode" class="form-control" placeholder="请填写您收到的邮箱验证码">
+                            </div>
+                            {% csrf_token %}
+                            <input type="submit" class="btn btn-primary" name="submit" value="修改邮箱"/>
+                        </form>
+                        <p style="color: red">{{ emailmsg }}</p>
+                    </div>
+                </div>
+                <hr/>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>修改用户个人信息</h5>
+                        <form method="post" action="{% url 'users:user-info' %}">
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">你的昵称</span>
+                                    </div>
+                                    <input type="text" name="nickname" value="{{ request.user.nickname }}"
+                                           class="form-control" placeholder="输入你的昵称">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">你的电话</span>
+                                    </div>
+                                    <input type="text" name="mobile" value="{{ request.user.mobile }}"
+                                           class="form-control" placeholder="输入你的电话">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">你的住址</span>
+                                    </div>
+                                    <input type="text" name="address" value="{{ request.user.address }}"
+                                           class="form-control" placeholder="输入你的住址">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">出生日期</span>
+                                    </div>
+                                    <input type="text" class="form-control" value="{{ request.user.birthday }}"
+                                           name="birthday">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male">
+                                    <label class="form-check-label" for="male">男</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="female"
+                                           value="female" checked>
+                                    <label class="form-check-label" for="female">女</label>
+                                </div>
+                            </div>
+                            {% csrf_token %}
+                            <input type="submit" name="submit" class="btn btn-primary" value="修改信息"/>
+                        </form>
+                        <p style="color: red">{{ infomsg }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div style="margin-bottom: 1rem">
+                            <h5>当前头像</h5>
+                            <img class="img-thumbnail" src="{{ MEDIA_URL }}{{ request.user.image }}"
+                                 width="180" height="150">
+                        </div>
+                        <form method="post" enctype="multipart/form-data"
+                              action="{% url 'users:user-info' %}">
+                            <div class="form-group">
+                                <label for="face">选择头像文件</label>
+                                <input type="file" id="face" name="image" class="form-control" required>
+                            </div>
+                            {% csrf_token %}
+                            <input type="submit" name="submit" class="btn btn-primary" value="修改头像"/>
+                        </form>
+                        <p style="color: red">{{ facemsg }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#m-2").addClass('active');
+        })
+    </script>
+{% endblock %}

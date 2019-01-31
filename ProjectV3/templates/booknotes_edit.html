@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load book_templ_tags %}
+{% block title %}
+    文章编辑页
+{% endblock %}
+
+{% block css_code %}
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2">
+
+            </div>
+            <div class="col-md-7 col-sm-12">
+                <div style="margin-top: 1rem">
+                    <form role="form" method="post" enctype="multipart/form-data"
+                          action="{% url 'books:booknotes-edit' notes_instance.pk %}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">文章分类</span>
+                                        </div>
+                                        {% get_categories as categories %}
+                                        <select class="form-control" name="category" required>
+                                            {% for category in categories %}
+                                                <option value="{{ category.id }}"
+                                                        {% ifequal category.id notes_instance.category_id %}
+                                                        selected="selected"{% endifequal %}>
+                                                    {{ category.catname }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">文章权限</span>
+                                        </div>
+                                        <select class="form-control" name="privacy" required>
+                                            <option value="public">公开</option>
+                                            <option value="private">私密</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">所属图书</span>
+                                        </div>
+                                        {% get_all_books as allbooks %}
+                                        <select class="form-control" name="book" required>
+                                            {% for book in allbooks %}
+                                                <option value="{{ book.pk }}" {% ifequal book.id notes_instance.book_id %}
+                                                        selected="selected"{% endifequal %}>{{ book.title }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">文章标题</span>
+                                        </div>
+                                        <input type="text" name="title" class="form-control" required
+                                               value="{{ notes_instance.title }}"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">文章封面</span>
+                                        </div>
+                                        <input type="file" name="cover" class="form-control"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">文章摘要</span>
+                                        </div>
+                                        <textarea name="abstract" class="form-control" rows="4"
+                                                  placeholder="填写笔记摘要(字数在5个到120个之内)"
+                                                  required minlength="5" maxlength="120"
+                                        >{{ notes_instance.abstract }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">文章标签</span>
+                                        </div>
+                                        {% get_tags as tags %}
+                                        {% with notes_instance.tags.all as selected_tags %}
+                                            <select class="form-control" name="tags" required multiple>
+                                                {% for tag in tags %}
+                                                    <option value="{{ tag.id }}"
+                                                            {% if tag in selected_tags %}
+                                                            selected="selected" {% endif %} > {{ tag.tagname }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 form-group">
+                                <label for="notes">文章内容</label>
+                                <textarea name="notes" id="notes" class="form-control"
+                                          rows="8" cols="100%">{{ notes_instance.notes }}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {% csrf_token %}
+                            <input type="submit" name="submit" value="创建文章" class="btn btn-primary"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-3">
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    <script src="https://cdn.bootcss.com/ckeditor/4.9.2/ckeditor.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var editor = CKEDITOR.replace('notes', {
+                toolbar: [
+                    {name: 'clipboard', items: ['Undo', 'Redo', 'Paste', 'PasteFromWord']},
+                    {name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize']},
+                    {name: 'colors', items: ['TextColor', 'BGColor']},
+                    {name: 'basicstyles', items: ['Bold', 'Italic', 'Strike', '-', 'RemoveFormat']},
+                    {
+                        name: 'paragraph',
+                        items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote']
+                    },
+                    {name: 'links', items: ['Link', 'Unlink']},
+                    {name: 'insert', items: ['Image', 'EmbedSemantic', 'Table']},
+                    {name: 'tools', items: ['Maximize']},
+                    {name: 'editing', items: ['Scayt']},
+                    {name: 'align', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+                ],
+                customConfig: '',
+                extraPlugins: 'embedbase,autolink,autoembed,embedsemantic,image2,uploadimage,uploadfile,font,' +
+                'justify,colorbutton,save,autogrow,codesnippet',
+                autoGrow_minHeight: 400,
+                autoGrow_maxHeight: 1200,
+                autoGrow_bottomSpace: 50,
+                removePlugins: 'image',
+                removeDialogTabs: 'image:advanced;link:advanced',
+                contentsCss: ['https://cdn.bootcss.com/ckeditor/4.9.2/contents.css'],
+                bodyClass: 'article-editor',
+                format_tags: 'p;h1;h2;h3;pre',
+                stylesSet: [
+                    /* Inline Styles */
+                    {name: 'Marker', element: 'span', attributes: {'class': 'marker'}},
+                    {name: 'Cited Work', element: 'cite'},
+                    {name: 'Inline Quotation', element: 'q'},
+                    /* Object Styles */
+                    {
+                        name: 'Special Container',
+                        element: 'div',
+                        styles: {
+                            padding: '5px 10px',
+                            background: '#eee',
+                            border: '1px solid #ccc'
+                        }
+                    },
+                    {
+                        name: 'Compact table',
+                        element: 'table',
+                        attributes: {
+                            cellpadding: '5',
+                            cellspacing: '0',
+                            border: '1',
+                            bordercolor: '#ccc'
+                        },
+                        styles: {
+                            'border-collapse': 'collapse'
+                        }
+                    },
+                    {
+                        name: 'Borderless Table',
+                        element: 'table',
+                        styles: {'border-style': 'hidden', 'background-color': '#E6E6FA'}
+                    },
+                    {name: 'Square Bulleted List', element: 'ul', styles: {'list-style-type': 'square'}},
+                    /* Widget Styles */
+                    // We use this one to style the brownie picture.
+                    {
+                        name: 'Illustration',
+                        type: 'widget',
+                        widget: 'image',
+                        attributes: {'class': 'image-illustration'}
+                    },
+                    // Media embed
+                    {name: '240p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-240p'}},
+                    {name: '360p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-360p'}},
+                    {name: '480p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-480p'}},
+                    {name: '720p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-720p'}},
+                    {name: '1080p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-1080p'}}
+                ],
+
+
+                fileTools_requestHeaders: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+
+
+                imageUploadUrl: '{% url "users:ckedt_dragdrop_image" %}'
+            });
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load get_styles get_categories get_tags from book_templ_tags %}
+{% block title %}
+    读书笔记管理---用户个人中心
+{% endblock %}
+{% block css_code %}
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/timeline.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                {% include 'user_center_menu.html' %}
+            </div>
+            <div class="col-md-10">
+                <div>
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#existed-article" role="tab">已有读书笔记</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#create-article" role="tab">新建读书笔记</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="existed-article" role="tabpanel">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>标题</th>
+                                    <th>封面</th>
+                                    <th>图书</th>
+                                    <th>分类</th>
+                                    <th>标签</th>
+                                    <th>权限</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for booknotes in booknotes_list.object_list %}
+                                    <tr>
+                                        <td>{{ booknotes.title }}</td>
+                                        <td><img src="{{ MEDIA_URL }}{{ booknotes.cover }}"
+                                                 width="120" height="100" class="img-thumbnail"/></td>
+                                        <td>{{ booknotes.book.title }}</td>
+                                        <td>{{ booknotes.category.catname }}</td>
+                                        <td>
+                                            {% for notetag in booknotes.tags.all %}
+                                                <span class="badge badge-{{ forloop.counter|get_styles }}">
+                                                    {{ notetag }}
+                                                </span>
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ booknotes.get_privacy_display }}</td>
+                                        <td>
+                                            <span><a class="btn btn-sm  btn-info"
+                                                     href="{% url 'books:booknotes-edit' booknotes.pk %}">编辑</a></span>
+                                            <span><a class="btn btn-sm  btn-danger btn-delete-notes"
+                                                     data-notes-id="{{ booknotes.id }}">删除</a></span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    {% if booknotes_list.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ booknotes_list.previous_page_number }}"
+                                               tabindex="-1">前一页</a>
+                                        </li>
+                                    {% endif %}
+                                    <li class="page-item">
+                                        <span class="page-link">{{ booknotes_list.number }}/{{ booknotes_list.paginator.num_pages }} </span>
+                                    </li>
+                                    {% if booknotes_list.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?page={{ booknotes_list.next_page_number }}">下一页</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="tab-pane fade" id="create-article" role="tabpanel">
+                            <div style="margin-top: 1rem">
+                                <form role="form" method="post" enctype="multipart/form-data"
+                                      action="{% url 'users:user-notes' %}">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">文章分类</span>
+                                                    </div>
+                                                    {% get_categories as categories %}
+                                                    <select class="form-control" name="category" required>
+                                                        {% for category in categories %}
+                                                            <option value="{{ category.pk }}">{{ category.catname }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <div class="input-group-append">
+                                                        <button class="input-group-btn" data-toggle="modal"
+                                                                data-target="#exampleModal">新增分类
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">文章权限</span>
+                                                    </div>
+                                                    <select class="form-control" name="privacy" required>
+                                                        <option value="public">公开</option>
+                                                        <option value="private">私密</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">所属图书</span>
+                                                    </div>
+                                                    <select class="form-control" name="book" required>
+                                                        {% for book in books %}
+                                                            <option value="{{ book.pk }}">{{ book.title }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">文章标题</span>
+                                                    </div>
+                                                    <input type="text" name="title" class="form-control" required/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">文章封面</span>
+                                                    </div>
+                                                    <input type="file" name="cover" class="form-control" required/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">文章摘要</span>
+                                                    </div>
+                                                    <textarea name="abstract" class="form-control" rows="4"
+                                                              placeholder="填写笔记摘要(字数在5个到120个之内)"
+                                                              required minlength="5" maxlength="120"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">文章标签</span>
+                                                    </div>
+                                                    {% get_tags as tags %}
+                                                    <select class="form-control" name="tags" required multiple>
+                                                        {% for tag in tags %}
+                                                            <option value="{{ tag.pk }}">{{ tag.tagname }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <div class="input-group-append">
+                                                        <button class="input-group-btn" data-toggle="modal"
+                                                                data-target="#exampleModal2">新增标签
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 form-group">
+                                            <label for="notes">笔记内容</label>
+                                            <textarea name="notes" id="notes" class="form-control"
+                                                      rows="8" cols="100%"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        {% csrf_token %}
+                                        <input type="submit" name="submit" value="创建文章" class="btn btn-primary"/>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">新增分类类别</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <label for="catname">类别名称</label>
+                        <input type="text" id="catname" name="catname" class="form-control" required/>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary">保存类别</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel2">新增文章标签</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <label for="tagname">文章标签</label>
+                        <input type="text" id="tagname" name="catname" class="form-control" required/>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary">保存标签</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js_code %}
+    {#    <script src="https://cdn.ckeditor.com/4.9.1/standard-all/ckeditor.js"></script>#}
+    <script src="https://cdn.bootcss.com/ckeditor/4.9.2/ckeditor.js"></script>
+    <script type="text/javascript">
+
+        //发送Ajax POST请求 删除文章
+        function delete_notes(current_elem, notes_id, user_id) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "{% url 'books:booknotes-delete' %}",
+                data: {'notes_id': notes_id, 'user_id': user_id},
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (data) {
+                    if (data.status == 'fail') {
+                        alert(data.msg)
+                    } else if (data.status == 'success') {
+                        window.location.reload();//刷新当前页面.
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $("#m-3").addClass('active');
+
+            var editor = CKEDITOR.replace('notes', {
+                toolbar: [
+                    {name: 'clipboard', items: ['Undo', 'Redo', 'Paste', 'PasteFromWord']},
+                    {name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize']},
+                    {name: 'colors', items: ['TextColor', 'BGColor']},
+                    {name: 'basicstyles', items: ['Bold', 'Italic', 'Strike', '-', 'RemoveFormat']},
+                    {
+                        name: 'paragraph',
+                        items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote']
+                    },
+                    {name: 'links', items: ['Link', 'Unlink']},
+                    {name: 'insert', items: ['Image', 'EmbedSemantic', 'Table']},
+                    {name: 'tools', items: ['Maximize']},
+                    {name: 'editing', items: ['Scayt']},
+                    {name: 'align', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+                ],
+                customConfig: '',
+                extraPlugins: 'embedbase,autolink,autoembed,embedsemantic,image2,uploadimage,uploadfile,font,' +
+                'justify,colorbutton,save,autogrow,codesnippet',
+                autoGrow_minHeight: 400,
+                autoGrow_maxHeight: 1200,
+                autoGrow_bottomSpace: 50,
+                removePlugins: 'image',
+                removeDialogTabs: 'image:advanced;link:advanced',
+                contentsCss: ['https://cdn.bootcss.com/ckeditor/4.9.2/contents.css'],
+                bodyClass: 'article-editor',
+                format_tags: 'p;h1;h2;h3;pre',
+                stylesSet: [
+                    /* Inline Styles */
+                    {name: 'Marker', element: 'span', attributes: {'class': 'marker'}},
+                    {name: 'Cited Work', element: 'cite'},
+                    {name: 'Inline Quotation', element: 'q'},
+                    /* Object Styles */
+                    {
+                        name: 'Special Container',
+                        element: 'div',
+                        styles: {
+                            padding: '5px 10px',
+                            background: '#eee',
+                            border: '1px solid #ccc'
+                        }
+                    },
+                    {
+                        name: 'Compact table',
+                        element: 'table',
+                        attributes: {
+                            cellpadding: '5',
+                            cellspacing: '0',
+                            border: '1',
+                            bordercolor: '#ccc'
+                        },
+                        styles: {
+                            'border-collapse': 'collapse'
+                        }
+                    },
+                    {
+                        name: 'Borderless Table',
+                        element: 'table',
+                        styles: {'border-style': 'hidden', 'background-color': '#E6E6FA'}
+                    },
+                    {name: 'Square Bulleted List', element: 'ul', styles: {'list-style-type': 'square'}},
+                    /* Widget Styles */
+                    // We use this one to style the brownie picture.
+                    {
+                        name: 'Illustration',
+                        type: 'widget',
+                        widget: 'image',
+                        attributes: {'class': 'image-illustration'}
+                    },
+                    // Media embed
+                    {name: '240p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-240p'}},
+                    {name: '360p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-360p'}},
+                    {name: '480p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-480p'}},
+                    {name: '720p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-720p'}},
+                    {name: '1080p', type: 'widget', widget: 'embedSemantic', attributes: {'class': 'embed-1080p'}}
+                ],
+                {#filebrowserImageUploadUrl: '{% url 'article:ckedt_recieve_image' %}',#}
+                {#filebrowserLinkUploadUrl: '{% url 'article:ckedt_recieve_image' %}',#}
+                {#filebrowserUploadMethod: 'xhr',#}
+                fileTools_requestHeaders: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                {#filebrowserImageBrowseUrl: '',#}
+                {#filebrowserLinkBrowseUrl: '',#}
+                imageUploadUrl: '{% url 'users:ckedt_dragdrop_image' %}'
+            });
+
+            $(".btn-delete-notes").on("click", function () {
+                alert("确定要删除这篇笔记吗？");
+                var notes_id = $(this).data('notes-id');
+                delete_notes($(this), notes_id, {{ request.user.id }});
+            })
+        })
+    </script>
+{% endblock %}
