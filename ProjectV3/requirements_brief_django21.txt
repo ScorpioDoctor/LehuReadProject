@@ -26,7 +26,7 @@ django-formtools==2.1
 XlsxWriter==1.1.2
 django-import-export==1.0.0
 Markdown==3.0.1
-Pillow==5.4.1
+Pillow==8.2.0
 django-markdownx==2.0.28
 django-pure-pagination==0.3.0
 django-simple-captcha==0.5.6
