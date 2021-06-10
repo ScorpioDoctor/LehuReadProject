@@ -18,7 +18,7 @@ pyparsing==2.3.1
 pyzmq==17.1.2
 mysqlclient==1.4.1
 requests==2.21.0
-Django==2.0.10
+Django==2.2.24
 django-reversion==3.0.3
 django-ckeditor==5.6.1
 django-crispy-forms==1.7.2
