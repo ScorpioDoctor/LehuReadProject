@@ -8,7 +8,7 @@ cloudpickle==0.5.3
 colorama==0.3.9
 cycler==0.10.0
 Cython==0.28.3
-dask==0.17.5
+dask==2021.10.0
 decorator==4.3.0
 diff-match-patch==20121119
 Django==2.0.2
